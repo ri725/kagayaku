@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>フォームを開いています...</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 24px;
+      line-height: 1.6;
+      color: #222;
+    }
+    .box {
+      max-width: 560px;
+      margin: 24px auto;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .small {
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>登録フォームを準備中です</h2>
+    <p>数秒でフォームに移動します。</p>
+    <p class="small" id="status">初期化中...</p>
+  </div>
+
+  <script>
+    /*
+      ここだけ書き換えてください
+      1) LIFF_ID: LINE DevelopersのLIFF ID
+      2) FORM_BASE_URL: Googleフォームのviewform URL
+      3) ENTRY_KEY: line_user_id項目のentry番号
+    */
+    const CONFIG = {
+      LIFF_ID: "2010024465-3JecMAQb",
+      FORM_BASE_URL: "https://docs.google.com/forms/d/e/1FAIpQLSdl2QHJBYnjyBcgZVihtNwNJ4hK_OHwsGRZO8sh1SOdQ_0V4A/viewform",
+      ENTRY_KEY: "entry.705660154"
+    };
+
+    const statusEl = document.getElementById("status");
+
+    function showStatus(text) {
+      if (statusEl) statusEl.textContent = text;
+    }
+
+    function buildFormUrl(userId) {
+      const url = new URL(CONFIG.FORM_BASE_URL);
+      url.searchParams.set("usp", "pp_url");
+      url.searchParams.set(CONFIG.ENTRY_KEY, userId);
+      return url.toString();
+    }
+
+    async function getLineUserId() {
+      try {
+        const profile = await liff.getProfile();
+        if (profile && profile.userId && profile.userId.startsWith("U")) {
+          return profile.userId;
+        }
+      } catch (error) {
+        console.warn("getProfile failed, fallback to ID token", error);
+      }
+
+      try {
+        const idToken = liff.getDecodedIDToken();
+        if (idToken && idToken.sub && String(idToken.sub).startsWith("U")) {
+          return String(idToken.sub);
+        }
+      } catch (error) {
+        console.warn("getDecodedIDToken failed", error);
+      }
+
+      return "";
+    }
+
+    async function main() {
+      try {
+        if (
+          !CONFIG.LIFF_ID ||
+          CONFIG.LIFF_ID === "YOUR_LIFF_ID" ||
+          !CONFIG.FORM_BASE_URL.includes("docs.google.com/forms")
+        ) {
+          showStatus("設定値が未入力です。index.htmlのCONFIGを編集してください。");
+          return;
+        }
+
+        showStatus("LINE情報を確認中...");
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+
+        if (!liff.isLoggedIn()) {
+          showStatus("LINEログインへ移動します...");
+          liff.login();
+          return;
+        }
+
+        showStatus("ユーザー情報を取得中...");
+        const userId = await getLineUserId();
+
+        if (!userId || !userId.startsWith("U")) {
+          showStatus("ユーザーIDの取得に失敗しました。LIFF設定のScope(profile)を確認してください。");
+          return;
+        }
+
+        const redirectUrl = buildFormUrl(userId);
+        showStatus("フォームへ移動します...");
+        window.location.replace(redirectUrl);
+      } catch (error) {
+        console.error(error);
+        showStatus("エラーが発生しました。時間をおいて再度お試しください。");
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>

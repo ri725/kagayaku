@@ -1,0 +1,1 @@
+# company_webhook.py は標準ライブラリのみで動作します
