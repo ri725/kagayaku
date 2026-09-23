@@ -32,6 +32,7 @@ from urllib.error import HTTPError
 REPLY_ENDPOINT = "https://api.line.me/v2/bot/message/reply"
 PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push"
 OFFICIAL_URL = "https://kagayakuyakuzaisi.co.jp"
+FORM_LIFF_URL = os.getenv("FORM_LIFF_URL", "https://liff.line.me/2010024465-3JecMAQb")
 
 FORM_COMPLETE_MESSAGE = (
     "ご回答ありがとうございます。\n"
@@ -50,16 +51,24 @@ def build_inquiry_menu_message() -> dict:
                     "type": "action",
                     "action": {
                         "type": "message",
-                        "label": "担当者連絡先",
-                        "text": "担当者連絡先",
+                        "label": "フリーランス薬剤師の募集",
+                        "text": "フリーランス薬剤師の募集",
                     },
                 },
                 {
                     "type": "action",
                     "action": {
                         "type": "message",
-                        "label": "その他",
-                        "text": "その他",
+                        "label": "転職の仲介",
+                        "text": "転職の仲介",
+                    },
+                },
+                {
+                    "type": "action",
+                    "action": {
+                        "type": "message",
+                        "label": "その他のお問い合わせ",
+                        "text": "その他のお問い合わせ",
                     },
                 },
             ]
@@ -71,6 +80,47 @@ def build_inquiry_wait_message() -> dict:
     return {
         "type": "text",
         "text": "担当者から連絡がきます。しばらくお待ちください。",
+    }
+
+
+def build_recruit_inquiry_message() -> dict:
+    return {
+        "type": "text",
+        "text": (
+            "フリーランス薬剤師の募集について承りました。\n"
+            "希望エリア・時給・稼働開始時期をこのままご返信ください。"
+        ),
+    }
+
+
+def build_mediation_inquiry_message() -> dict:
+    return {
+        "type": "text",
+        "text": (
+            "転職の仲介について承りました。\n"
+            "募集背景・採用時期・雇用条件をこのままご返信ください。"
+        ),
+    }
+
+
+def build_form_guide_message() -> dict:
+    return {
+        "type": "text",
+        "text": (
+            "薬剤師向けサービスをご希望の方は、初回登録フォームのご回答をお願いします。\n"
+            f"{FORM_LIFF_URL}"
+        ),
+    }
+
+
+def build_follow_welcome_message() -> dict:
+    return {
+        "type": "text",
+        "text": (
+            "友だち追加ありがとうございます。\n\n"
+            "薬剤師向けサービスをご希望の方は、初回登録フォームのご回答をお願いします。\n"
+            f"{FORM_LIFF_URL}"
+        ),
     }
 
 
@@ -244,7 +294,11 @@ def is_valid_user_id(user_id: str) -> bool:
 def resolve_messages(user_text: str) -> list[dict] | None:
     if user_text in {"お問い合わせ", "企業お問い合わせメニュー", "問い合わせしたい"}:
         return [build_inquiry_menu_message()]
-    if user_text in {"その他"}:
+    if user_text in {"フリーランス薬剤師の募集"}:
+        return [build_recruit_inquiry_message()]
+    if user_text in {"転職の仲介"}:
+        return [build_mediation_inquiry_message()]
+    if user_text in {"その他", "その他のお問い合わせ"}:
         return [build_inquiry_wait_message()]
     if user_text in {"求人情報", "求人情報を見たい"}:
         return [build_dummy_jobs_message()]
@@ -252,6 +306,8 @@ def resolve_messages(user_text: str) -> list[dict] | None:
         return [build_staff_contacts_message()]
     if user_text in {"使い方", "使い方を知りたい"}:
         return [build_usage_guide_message()]
+    if user_text in {"薬剤師メニューを利用したい", "薬剤師サービスを利用したい"}:
+        return [build_form_guide_message()]
     return None
 
 
@@ -350,6 +406,16 @@ class Handler(BaseHTTPRequestHandler):
 
         events = payload.get("events", [])
         for event in events:
+            if event.get("type") == "follow":
+                reply_token = event.get("replyToken")
+                if not reply_token:
+                    continue
+                try:
+                    reply_message(access_token, reply_token, [build_follow_welcome_message()])
+                except Exception:
+                    pass
+                continue
+
             if event.get("type") != "message":
                 continue
             message = event.get("message", {})

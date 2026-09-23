@@ -10,6 +10,8 @@
 使い方:
 python create_company_richmenu.py \
   --image-path "企業.jpg" \
+  --pharmacist-tab-action message \
+  --pharmacist-tab-message "薬剤師メニューを利用したい" \
   --homepage-url "https://kagayakuyakuzaisi.co.jp" \
   --inquiry-message "お問い合わせ" \
   --company-alias "company_tab" \
@@ -125,16 +127,24 @@ def create_richmenu_alias(alias_id: str, richmenu_id: str, access_token: str) ->
 
 
 def build_company_payload(
+    pharmacist_tab_action: str,
+    pharmacist_form_url: str | None,
+    pharmacist_tab_message: str,
     homepage_url: str,
     inquiry_message: str,
     company_alias: str,
     pharmacist_alias: str | None,
 ) -> dict:
-    pharmacist_tab_action = (
-        {"type": "richmenuswitch", "richMenuAliasId": pharmacist_alias, "data": "tab=pharmacist"}
-        if pharmacist_alias
-        else {"type": "message", "text": "薬剤師向けメニューは準備中です"}
-    )
+    if pharmacist_tab_action == "uri":
+        left_tab_action = {"type": "uri", "uri": pharmacist_form_url}
+    elif pharmacist_tab_action == "message":
+        left_tab_action = {"type": "message", "text": pharmacist_tab_message}
+    else:
+        left_tab_action = (
+            {"type": "richmenuswitch", "richMenuAliasId": pharmacist_alias, "data": "tab=pharmacist"}
+            if pharmacist_alias
+            else {"type": "message", "text": "薬剤師向けメニューは準備中です"}
+        )
 
     # 企業.jpg（2500x1686換算）
     # 上段タブ / 中段2ボタン / 下段ロゴ帯は非タップ
@@ -146,7 +156,7 @@ def build_company_payload(
         "areas": [
             {
                 "bounds": {"x": 0, "y": 0, "width": 1250, "height": 200},
-                "action": pharmacist_tab_action,
+                "action": left_tab_action,
             },
             {
                 "bounds": {"x": 1250, "y": 0, "width": 1250, "height": 200},
@@ -171,6 +181,21 @@ def build_company_payload(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="企業様向けリッチメニュー作成")
     parser.add_argument("--image-path", default="企業.jpg", help="リッチメニュー画像パス")
+    parser.add_argument(
+        "--pharmacist-tab-action",
+        choices=["richmenuswitch", "uri", "message"],
+        default="message",
+        help="左上の薬剤師タブの動作 (default: message)",
+    )
+    parser.add_argument(
+        "--pharmacist-form-url",
+        help="薬剤師タブの遷移先URL（pharmacist-tab-action=uri の時に必須）",
+    )
+    parser.add_argument(
+        "--pharmacist-tab-message",
+        default="薬剤師メニューを利用したい",
+        help="薬剤師タブで送信するメッセージ（pharmacist-tab-action=message時）",
+    )
     parser.add_argument(
         "--homepage-url",
         default="https://kagayakuyakuzaisi.co.jp",
@@ -209,8 +234,17 @@ def main() -> int:
     if not os.path.exists(args.image_path):
         print(f"画像が見つかりません: {args.image_path}", file=sys.stderr)
         return 1
+    if args.pharmacist_tab_action == "uri" and not args.pharmacist_form_url:
+        print(
+            "--pharmacist-tab-action uri の場合は --pharmacist-form-url を指定してください。",
+            file=sys.stderr,
+        )
+        return 1
 
     payload = build_company_payload(
+        pharmacist_tab_action=args.pharmacist_tab_action,
+        pharmacist_form_url=args.pharmacist_form_url,
+        pharmacist_tab_message=args.pharmacist_tab_message,
         homepage_url=args.homepage_url,
         inquiry_message=args.inquiry_message,
         company_alias=args.company_alias,
@@ -237,6 +271,7 @@ def main() -> int:
                     "defaultSet": args.set_default,
                     "companyAliasId": args.company_alias,
                     "pharmacistAliasId": args.pharmacist_alias,
+                    "pharmacistTabAction": args.pharmacist_tab_action,
                     "homepageUrl": args.homepage_url,
                     "inquiryMessage": args.inquiry_message,
                 },
