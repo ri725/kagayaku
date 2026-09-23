@@ -41,7 +41,7 @@ FORM_COMPLETE_MESSAGE = (
 )
 
 
-def build_inquiry_menu_message() -> dict:
+def build_company_inquiry_menu_message() -> dict:
     return {
         "type": "text",
         "text": "お問い合わせ内容をお選びください。",
@@ -61,6 +61,33 @@ def build_inquiry_menu_message() -> dict:
                         "type": "message",
                         "label": "転職の仲介",
                         "text": "転職の仲介",
+                    },
+                },
+                {
+                    "type": "action",
+                    "action": {
+                        "type": "message",
+                        "label": "その他のお問い合わせ",
+                        "text": "その他のお問い合わせ",
+                    },
+                },
+            ]
+        },
+    }
+
+
+def build_pharmacist_inquiry_menu_message() -> dict:
+    return {
+        "type": "text",
+        "text": "ご希望の内容をお選びください。",
+        "quickReply": {
+            "items": [
+                {
+                    "type": "action",
+                    "action": {
+                        "type": "message",
+                        "label": "担当者連絡先",
+                        "text": "担当者連絡先",
                     },
                 },
                 {
@@ -292,8 +319,10 @@ def is_valid_user_id(user_id: str) -> bool:
 
 
 def resolve_messages(user_text: str) -> list[dict] | None:
-    if user_text in {"お問い合わせ", "企業お問い合わせメニュー", "問い合わせしたい"}:
-        return [build_inquiry_menu_message()]
+    if user_text in {"企業お問い合わせメニュー", "企業問い合わせしたい"}:
+        return [build_company_inquiry_menu_message()]
+    if user_text in {"薬剤師お問い合わせメニュー", "お問い合わせ"}:
+        return [build_pharmacist_inquiry_menu_message()]
     if user_text in {"フリーランス薬剤師の募集"}:
         return [build_recruit_inquiry_message()]
     if user_text in {"転職の仲介"}:

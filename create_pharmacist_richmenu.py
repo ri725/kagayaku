@@ -12,7 +12,7 @@ python create_pharmacist_richmenu.py \
   --image-path "薬剤師.jpg" \
   --jobs-message "求人情報" \
   --usage-message "使い方" \
-  --inquiry-message "お問い合わせ" \
+  --inquiry-message "薬剤師お問い合わせメニュー" \
   --pharmacist-alias "pharmacist_tab" \
   --company-alias "company_tab" \
   --set-default
@@ -194,7 +194,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--inquiry-message",
-        default="お問い合わせ",
+        default="薬剤師お問い合わせメニュー",
         help="お問い合わせボタンで送信するメッセージ",
     )
     parser.add_argument(
