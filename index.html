@@ -131,7 +131,8 @@
         window.location.replace(redirectUrl);
       } catch (error) {
         console.error(error);
-        showStatus("エラーが発生しました。時間をおいて再度お試しください。");
+        const detail = error && error.message ? String(error.message) : "unknown";
+        showStatus("エラーが発生しました: " + detail);
       }
     }
 
