@@ -13,7 +13,7 @@ python create_company_richmenu.py \
   --pharmacist-tab-action message \
   --pharmacist-tab-message "薬剤師メニューを利用したい" \
   --homepage-url "https://kagayakuyakuzaisi.co.jp" \
-  --inquiry-message "企業お問い合わせメニュー" \
+  --inquiry-message "問い合わせ" \
   --company-alias "company_tab" \
   --pharmacist-alias "pharmacist_tab"
 """
@@ -203,7 +203,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--inquiry-message",
-        default="企業お問い合わせメニュー",
+        default="問い合わせ",
         help="お問い合わせボタンで送信するメッセージ",
     )
     parser.add_argument(
