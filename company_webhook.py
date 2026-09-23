@@ -103,6 +103,33 @@ def build_pharmacist_inquiry_menu_message() -> dict:
     }
 
 
+def build_inquiry_role_select_message() -> dict:
+    return {
+        "type": "text",
+        "text": "お問い合わせの種別を選んでください。",
+        "quickReply": {
+            "items": [
+                {
+                    "type": "action",
+                    "action": {
+                        "type": "message",
+                        "label": "企業として問い合わせ",
+                        "text": "企業お問い合わせメニュー",
+                    },
+                },
+                {
+                    "type": "action",
+                    "action": {
+                        "type": "message",
+                        "label": "薬剤師として問い合わせ",
+                        "text": "薬剤師お問い合わせメニュー",
+                    },
+                },
+            ]
+        },
+    }
+
+
 def build_inquiry_wait_message() -> dict:
     return {
         "type": "text",
@@ -321,7 +348,9 @@ def is_valid_user_id(user_id: str) -> bool:
 def resolve_messages(user_text: str) -> list[dict] | None:
     if user_text in {"企業お問い合わせメニュー", "企業問い合わせしたい"}:
         return [build_company_inquiry_menu_message()]
-    if user_text in {"薬剤師お問い合わせメニュー", "お問い合わせ"}:
+    if user_text == "お問い合わせ":
+        return [build_inquiry_role_select_message()]
+    if user_text in {"薬剤師お問い合わせメニュー", "薬剤師問い合わせしたい"}:
         return [build_pharmacist_inquiry_menu_message()]
     if user_text in {"フリーランス薬剤師の募集"}:
         return [build_recruit_inquiry_message()]
