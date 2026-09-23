@@ -32,7 +32,7 @@ from urllib.error import HTTPError
 REPLY_ENDPOINT = "https://api.line.me/v2/bot/message/reply"
 PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push"
 OFFICIAL_URL = "https://kagayakuyakuzaisi.co.jp"
-FORM_LIFF_URL = os.getenv("FORM_LIFF_URL", "https://liff.line.me/2010024465-3JecMAQb")
+FORM_LIFF_URL = os.getenv("FORM_LIFF_URL", "https://liff.line.me/2011709918-rTuRcxwC")
 
 FORM_COMPLETE_MESSAGE = (
     "ご回答ありがとうございます。\n"
